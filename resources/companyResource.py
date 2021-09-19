@@ -11,19 +11,37 @@ def CompanyVerification(name):
         print(c.org_name)
 
 
+def GetCompanyById(id):
+    foundCompany=None
+    for c in companyModel.companies:
+        if c.org_id == id:
+            foundCompany=c
+            break
+    return foundCompany
+
+
 class Company(Resource):
     def get(self):
         print(request.get_json())
-        return {"data": "Company GET request"}
-    def post(self):
         data = request.get_json()
-        print(data)
         company_dict = cSchema.load(data)
-        print(company_dict)
+
+        result = GetCompanyById(company_dict['org_id'])
+
+        if result != None:
+            return cSchema.dumps(GetCompanyById(company_dict['org_id']))
+        else:
+            return {"data": "Company not found"}
+    def post(self):
+
+        data = request.get_json()
+        #print(data)
+        company_dict = cSchema.load(data)
+        #print(company_dict)
         cModel = companyModel.Company(org_id=company_dict['org_id'],
                                       org_name=company_dict['org_name'])
         companyModel.companies.append(cModel)
-        print(companyModel.companies)
+        #print(companyModel.companies)
         return {"data": "Company POST request"}
     def put(self):
         print(request.get_json())
