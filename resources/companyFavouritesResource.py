@@ -2,6 +2,7 @@ from datetime import date
 
 from flask_restful import Resource, request
 from models import companyFavouritesModel
+from resources import companyResource
 from schemas import companyFavouritesSchema
 
 cFavouriteSchema = companyFavouritesSchema.CompanyFavouritesSchema()
@@ -35,7 +36,13 @@ class CompanyFavourites(Resource):
 
         if result == True:
             print(companyFavourites)
-            return cFavouriteSchema.dump(companyFavourites, many=True)  #Need to dump company Information, not CompanyFavourites Table
+
+            idList = []
+            for cF in companyFavourites:
+                idList.append(cF.favourite_org_id)
+
+            #return cFavouriteSchema.dump(companyFavourites, many=True)  #Need to dump company Information, not CompanyFavourites Table
+            return companyResource.GetCompaniesById(idList)
         else:
             return {"data": "Company not found, Invalid data"}
 

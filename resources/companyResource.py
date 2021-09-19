@@ -5,10 +5,22 @@ from schemas import companySchema
 
 cSchema = companySchema.CompanySchema()
 
-
 def CompanyVerification(name):
     for c in companyModel.companies:
         print(c.org_name)
+
+
+def GetCompaniesById(idList):
+    companiesData = []
+    cont = 0
+    while cont < len(idList):
+        for c in companyModel.companies:
+            if c.org_id == idList[cont]:
+                companiesData.append(c)
+                break
+        cont += 1
+
+    return cSchema.dump(companiesData, many=True)
 
 
 def GetCompanyById(id):
