@@ -3,6 +3,7 @@ from resources import resources
 
 app = Flask(__name__)
 app.register_blueprint(resources.companyBP)
+app.register_blueprint(resources.companyFavouritesBP)
 
 @app.route('/')
 def hello_world():  # put application's code here

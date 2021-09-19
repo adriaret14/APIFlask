@@ -16,3 +16,4 @@ class Company:
     def __init__(self, org_id, org_name):
         self.org_id = org_id
         self.org_name = org_name
+
