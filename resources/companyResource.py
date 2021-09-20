@@ -1,4 +1,5 @@
-from flask_restful import Resource, request
+import flask
+from flask_restful import Resource, request, reqparse, abort
 
 from error_handler import *
 from models import companyModel
@@ -10,14 +11,12 @@ cSchema = companySchema.CompanySchema()
 #Only use if using API with variables
 companyIdCont = 0
 
-
 def CheckCompanyDoesntExist(name):
     for c in companyModel.companies:
         if c.org_name == name:
             return True
 
     return False
-
 
 def GetCompaniesById(idList):
     companiesData = []
@@ -30,7 +29,6 @@ def GetCompaniesById(idList):
         cont += 1
     return companiesData
 
-
 def GetCompanyById(id):
     foundCompany=None
     for c in companyModel.companies:
@@ -42,64 +40,77 @@ def GetCompanyById(id):
 
 class Company(Resource):
     def get(self):
-        data = request.get_json()
-        if data != None:
-            company_dict = cSchema.load(data)
-        else:
-            raise RequestBodyEmpty('Request body cannot be empty and must be JSON formatted')
+        if not request.is_json:
+            abort(400, msg='Request body cannot be empty and must be JSON formatted')
 
-        result = GetCompanyById(company_dict['org_id'])
+        json_org_id = request.json.get("org_id")
 
-        if result != None:
-            return cSchema.dump(GetCompanyById(company_dict['org_id'])), 200
+        if json_org_id is None:
+            abort(400, msg='Missing required field org_id')
+
+        result = GetCompanyById(json_org_id)
+
+        if result is not None:
+            return cSchema.dump(GetCompanyById(json_org_id)), 200
         else:
-            raise ObjectNotFound('Company not found')
+            abort(404, msg='Company not found')
 
     def post(self):
         global companyIdCont
 
-        data = request.get_json()
-        if(data != None):
-            company_dict = cSchema.load(data)
-        else:
-            raise RequestBodyEmpty('Request body cannot be empty and must be JSON formatted')
+        if not request.is_json:
+            abort(400, msg='Request body cannot be empty and must be JSON formatted')
 
-        if CheckCompanyDoesntExist(company_dict['org_name']) == False:
-            cModel = companyModel.Company(org_id = companyIdCont,
-                                         org_name=company_dict['org_name'])
+        json_org_name = request.json.get("org_name")
+
+        if json_org_name is None:
+            abort(400, msg='Missing required field org_name')
+
+        if CheckCompanyDoesntExist(json_org_name) == False:
+            cModel = companyModel.Company(org_id=companyIdCont,
+                                         org_name=json_org_name)
         else:
-            raise ObjectAlreadyExists('This company already exists')
+            abort(400, msg='The company already exists')
 
         companyIdCont += 1
         companyModel.companies.append(cModel)
         return {'msg': 'Company created'}, 201
 
     def put(self):
-        data = request.get_json()
-        if (data != None):
-            company_dict = cSchema.load(data)
-        else:
-            raise RequestBodyEmpty('Request body cannot be empty and must be JSON formatted')
+        if not request.is_json:
+            abort(400, msg='Request body cannot be empty and must be JSON formatted')
 
-        updCompany = GetCompanyById(company_dict['org_id'])
-        if updCompany != None:      #Need to take in mind what happens if not all params have been sent
-            updCompany.org_name = company_dict['org_name']
+        json_org_id = request.json.get("org_id")
+        json_org_name = request.json.get("org_name")
+
+        if json_org_id is None:
+            abort(400, msg='Missing required field org_id')
+
+        if json_org_name is None:
+            abort(400, msg='Missing required field org_name')
+
+        updCompany = GetCompanyById(json_org_id)
+        if updCompany != None:
+            updCompany.org_name = json_org_name
         else:
-            raise ObjectNotFound('Company not found')
+            abort(404, msg='Company not found')
 
         return {'msg': 'OK'}, 200
 
     def delete(self):   #Need to take in mind the delCompany in favourites and remove them also
-       data = request.get_json()
-       if(data != None):
-           company_dict = cSchema.load(data)
-       else:
-           raise RequestBodyEmpty('Request body cannot be empty and must be JSON formatted')
+        if not request.is_json:
+            abort(400, msg='Request body cannot be empty and must be JSON formatted')
 
-       delCompany = GetCompanyById(company_dict['org_id'])
-       if delCompany != None:
+        json_org_id = request.json.get("org_id")
+
+        if json_org_id is None:
+            abort(400, msg='Missing required field org_id')
+
+        delCompany = GetCompanyById(json_org_id)
+        if delCompany != None:
             companyModel.companies.remove(delCompany)
-       else:
-           raise ObjectNotFound('Company not found')
+        else:
+            abort(404, msg='Company not found')
 
-       return {'msg': 'OK'}, 200
+        return {'msg': 'OK'}, 200
+
