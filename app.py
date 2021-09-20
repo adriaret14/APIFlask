@@ -43,5 +43,9 @@ def RegisterErrorHandlers(app):
     def handle_request_body_empty_error(e):
         return jsonify({'msg': str(e)}), 400
 
+    @app.errorhandler(ObjectAlreadyExists)
+    def handle_request_object_already_exists_error(e):
+        return jsonify({'msg': str(e)}), 400
+
 
 RegisterErrorHandlers(app)

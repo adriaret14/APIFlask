@@ -5,3 +5,7 @@ class ObjectNotFound(Exception):
 class RequestBodyEmpty(Exception):
     pass
 
+
+class ObjectAlreadyExists(Exception):
+    pass
+

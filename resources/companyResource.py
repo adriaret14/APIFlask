@@ -13,7 +13,10 @@ companyIdCont = 0
 
 def CheckCompanyDoesntExist(name):
     for c in companyModel.companies:
-        print(c.org_name)
+        if c.org_name == name:
+            return True
+
+    return False
 
 
 def GetCompaniesById(idList):
@@ -56,12 +59,20 @@ class Company(Resource):
         global companyIdCont
 
         data = request.get_json()
-        company_dict = cSchema.load(data)
-        cModel = companyModel.Company(org_id = companyIdCont,
-                                      org_name=company_dict['org_name'])
+        if(data != None):
+            company_dict = cSchema.load(data)
+        else:
+            raise RequestBodyEmpty('Request body cannot be empty and must be JSON formatted')
+
+        if CheckCompanyDoesntExist(company_dict['org_name']) == False:
+            cModel = companyModel.Company(org_id = companyIdCont,
+                                         org_name=company_dict['org_name'])
+        else:
+            raise ObjectAlreadyExists('This company already exists')
+
         companyIdCont += 1
         companyModel.companies.append(cModel)
-        return {"data": "Company POST request"}
+        return {'msg': 'Company created'}, 201
 
     def put(self):
         print(request.get_json())

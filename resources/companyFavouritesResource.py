@@ -61,7 +61,7 @@ class CompanyFavourites(Resource):
         cFavouriteModel = companyFavouritesModel.CompanyFavourites(org_id = companyFavourites_dict['org_id'],
                                                                    favourite_org_id = companyFavourites_dict['favourite_org_id'])
         companyFavouritesModel.companiesFavourites.append(cFavouriteModel)
-        return {"data": "CompanyFavourites POST request"}
+        return {'msg': 'Company Favourite Added'}, 201
     def put(self):
         return {"data": "CompanyFavourites PUT request"}
     def delete(self):
