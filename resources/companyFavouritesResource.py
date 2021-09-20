@@ -10,13 +10,17 @@ cFavouriteExportSchema = companyFavouritesSchema.CompanyFavouriteExportSchema()
 companyFavourites = []
 companyFavouritesExport = []
 
+def DeleteCascadeAllCompanyRegisters(id):
+    for cF in companyFavouritesModel.companiesFavourites:
+        if cF.org_id == id or cF.favourite_org_id == id:
+            companyFavouritesModel.companiesFavourites.remove(cF)
+
 def FindSpecificFavouriteCompany(id, fid):
     searchedFCompany = None
     for cF in companyFavouritesModel.companiesFavourites:
         if cF.org_id == id and cF.favourite_org_id == fid:
             searchedFCompany = cF
     return searchedFCompany
-
 
 def GetCompanyFavourites(id):
     companyFound = False

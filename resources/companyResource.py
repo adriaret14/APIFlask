@@ -3,6 +3,7 @@ from flask_restful import Resource, request, reqparse, abort
 
 from error_handler import *
 from models import companyModel
+from resources import companyFavouritesResource
 from schemas import companySchema
 
 
@@ -97,7 +98,7 @@ class Company(Resource):
 
         return {'msg': 'OK'}, 200
 
-    def delete(self):   #Need to take in mind the delCompany in favourites and remove them also
+    def delete(self):
         if not request.is_json:
             abort(400, msg='Request body cannot be empty and must be JSON formatted')
 
@@ -109,6 +110,7 @@ class Company(Resource):
         delCompany = GetCompanyById(json_org_id)
         if delCompany != None:
             companyModel.companies.remove(delCompany)
+            companyFavouritesResource.DeleteCascadeAllCompanyRegisters(json_org_id)
         else:
             abort(404, msg='Company not found')
 
