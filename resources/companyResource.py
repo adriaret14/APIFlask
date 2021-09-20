@@ -75,9 +75,31 @@ class Company(Resource):
         return {'msg': 'Company created'}, 201
 
     def put(self):
-        print(request.get_json())
-        return {"data": "Company PUT request"}
+        data = request.get_json()
+        if (data != None):
+            company_dict = cSchema.load(data)
+        else:
+            raise RequestBodyEmpty('Request body cannot be empty and must be JSON formatted')
 
-    def delete(self):
-        print(request.get_json())
-        return {"data": "Company DELETE request"}
+        updCompany = GetCompanyById(company_dict['org_id'])
+        if updCompany != None:      #Need to take in mind what happens if not all params have been sent
+            updCompany.org_name = company_dict['org_name']
+        else:
+            raise ObjectNotFound('Company not found')
+
+        return {'msg': 'OK'}, 200
+
+    def delete(self):   #Need to take in mind the delCompany in favourites and remove them also
+       data = request.get_json()
+       if(data != None):
+           company_dict = cSchema.load(data)
+       else:
+           raise RequestBodyEmpty('Request body cannot be empty and must be JSON formatted')
+
+       delCompany = GetCompanyById(company_dict['org_id'])
+       if delCompany != None:
+            companyModel.companies.remove(delCompany)
+       else:
+           raise ObjectNotFound('Company not found')
+
+       return {'msg': 'OK'}, 200
