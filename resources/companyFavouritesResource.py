@@ -1,17 +1,19 @@
-from datetime import date
-
 from flask_restful import Resource, request
+from error_handler import *
 from models import companyFavouritesModel
 from resources import companyResource
 from schemas import companyFavouritesSchema
 
 cFavouriteSchema = companyFavouritesSchema.CompanyFavouritesSchema()
+cFavouriteExportSchema = companyFavouritesSchema.CompanyFavouriteExportSchema()
+
 companyFavourites = []
+companyFavouritesExport = []
 
 
 def GetCompanyFavourites(id):
     companyFound = False
-    ClearCompanyFavourites()
+    ClearCompanyFavouritesLists()
 
     for cF in companyFavouritesModel.companiesFavourites:
         if cF.org_id  == id:
@@ -20,8 +22,9 @@ def GetCompanyFavourites(id):
     return companyFound
 
 
-def ClearCompanyFavourites():
+def ClearCompanyFavouritesLists():
     companyFavourites.clear()
+    companyFavouritesExport.clear()
 
 
 class CompanyFavourites(Resource):
@@ -30,27 +33,33 @@ class CompanyFavourites(Resource):
         if data != None:
             companyFavourites_dict = cFavouriteSchema.load(data)
         else:
-            return {"data": "GET Request body was empty"}
+            raise RequestBodyEmpty('Request body cannot be empty and must be JSON formatted')
 
         result = GetCompanyFavourites(companyFavourites_dict['org_id'])
 
         if result == True:
-            print(companyFavourites)
-
             idList = []
             for cF in companyFavourites:
                 idList.append(cF.favourite_org_id)
 
-            #return cFavouriteSchema.dump(companyFavourites, many=True)  #Need to dump company Information, not CompanyFavourites Table
-            return companyResource.GetCompaniesById(idList)
+            companies = companyResource.GetCompaniesById(idList)
+            for cF in companyFavourites:
+                for c in companies:
+                    if cF.favourite_org_id == c.org_id:
+                        cFExport = companyFavouritesModel.CompanyFavouriteExport(org_id = c.org_id,
+                                                                      org_name = c.org_name,
+                                                                      addition_date = cF.addition_date)
+                        companyFavouritesExport.append(cFExport)
+
+            return cFavouriteExportSchema.dump(companyFavouritesExport, many=True)
         else:
-            return {"data": "Company not found, Invalid data"}
+            raise ObjectNotFound('Company not found')
 
     def post(self):
         data = request.get_json()
         companyFavourites_dict = cFavouriteSchema.load(data)
         cFavouriteModel = companyFavouritesModel.CompanyFavourites(org_id = companyFavourites_dict['org_id'],
-                                                                   favourite_org_id = companyFavourites_dict['favourite_org_id']) #Need to add additon_date
+                                                                   favourite_org_id = companyFavourites_dict['favourite_org_id'])
         companyFavouritesModel.companiesFavourites.append(cFavouriteModel)
         return {"data": "CompanyFavourites POST request"}
     def put(self):
