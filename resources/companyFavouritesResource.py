@@ -1,3 +1,5 @@
+from datetime import date
+
 from flask_restful import Resource, request, abort
 from error_handler import *
 from models import companyFavouritesModel
@@ -42,20 +44,24 @@ class CompanyFavourites(Resource):
         CheckIfRequestIsNotJson(request.is_json)
         json_org_id = request.json.get("org_id")
         CheckIfFieldIsMissing(json_org_id, "org_id")
-        result = GetCompanyFavourites(json_org_id)
-        CheckIfObjectsDoesntExist(result)
+        # result = GetCompanyFavourites(json_org_id)
+        # CheckIfObjectsDoesntExist(result)
 
-        idList = []
-        for cF in companyFavourites:
-            idList.append(cF.favourite_org_id)
-        companies = companyResource.GetCompaniesById(idList)
-        for cF in companyFavourites:
-            for c in companies:
-                if cF.favourite_org_id == c.org_id:
-                    cFExport = companyFavouritesModel.CompanyFavouriteExport(org_id=c.org_id,
-                                                                                 org_name=c.org_name,
-                                                                                 addition_date=cF.addition_date)
-                    companyFavouritesExport.append(cFExport)
+        # idList = []
+        # for cF in companyFavourites:
+        #     idList.append(cF.favourite_org_id)
+        # companies = companyResource.GetCompaniesById(idList)
+        # for cF in companyFavourites:
+        #     for c in companies:
+        #         if cF.favourite_org_id == c.org_id:
+        #             cFExport = companyFavouritesModel.CompanyFavouriteExport(org_id=c.org_id,
+        #                                                                          org_name=c.org_name,
+        #                                                                          addition_date=cF.addition_date)
+        #             companyFavouritesExport.append(cFExport)
+        comps = companyFavouritesModel.CompanyFavourites.get_all()
+        print(comps)
+
+        return cFavouriteSchema.dump(comps, many=True)
 
         return cFavouriteExportSchema.dump(companyFavouritesExport, many=True)
 
@@ -65,15 +71,14 @@ class CompanyFavourites(Resource):
         json_favourite_org_id = request.json.get("favourite_org_id")
         CheckIfFieldIsMissing(json_org_id, "org_id")
         CheckIfFieldIsMissing(json_favourite_org_id, "favourite_org_id")
-        cFavouriteModel = companyFavouritesModel.CompanyFavouritesMod(org_id=json_org_id,
+        cFavouriteModel = companyFavouritesModel.CompanyFavourites(org_id=json_org_id,
+                                                                   addition_date=date.today(),
                                                                       favourite_org_id=json_favourite_org_id)
         CheckIfObjectAlreadyExists(FindSpecificFavouriteCompany(json_org_id, json_favourite_org_id))
         companyFavouritesModel.companiesFavourites.append(cFavouriteModel)
+        cFavouriteModel.save()
 
-        # if (FindSpecificFavouriteCompany(json_org_id, json_favourite_org_id)) is None:
-        #     companyFavouritesModel.companiesFavourites.append(cFavouriteModel)
-        # else:
-        #     abort(400, msg='The favourited company already exists')
+        return cFavouriteSchema.dump(cFavouriteModel)
 
         return {'msg': 'Company Favourite Added'}, 201
 

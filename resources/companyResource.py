@@ -47,7 +47,11 @@ class Company(Resource):
         json_org_id = request.json.get("org_id")
         CheckIfFieldIsMissing(json_org_id, "org_id")
         result = GetCompanyById(json_org_id)
-        CheckIfObjectIsNone(result)
+        #CheckIfObjectIsNone(result)
+
+        comp = companyModel.Company.get_by_id(json_org_id)
+
+        return cSchema.dump(comp)
 
         return cSchema.dump(result), 200
 
@@ -58,15 +62,11 @@ class Company(Resource):
         json_org_name = request.json.get("org_name")
         CheckIfFieldIsMissing(json_org_name, "org_name")
         CheckIfObjectAlreadyExists(GetCompanyByName(json_org_name))
-        # cModel = companyModel.CompanyMod(org_id=companyIdCont,
-        #                                  org_name=json_org_name)
         cModel = companyModel.Company(org_name=json_org_name)
-        #companyIdCont += 1
         companyModel.companies.append(cModel)
         cModel.save()
-        #companySchema.dump(cModel)
 
-        return {'msg': 'Company created'}, 201
+        return cSchema.dump(cModel), 201
 
     def put(self):
         CheckIfRequestIsNotJson(request.is_json)

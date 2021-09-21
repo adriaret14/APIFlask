@@ -6,8 +6,8 @@ class CompanyFavourites(db.Model, BaseModelMixin):
     org_id = db.Column(db.Integer, db.ForeignKey('company.org_id'))
     addition_date = db.Column(db.Date)
     favourite_org_id = db.Column(db.Integer, db.ForeignKey('company.org_id'))
-    org = db.relationship('Company', foreign_keys=[org_id])
-    favourite_org = db.relationship('Company', foreign_keys=[favourite_org_id])
+    org = db.relationship('Company', foreign_keys=[org_id], lazy=False)
+    favourite_org = db.relationship('Company', foreign_keys=[favourite_org_id], lazy=False)
 
 
 companiesFavourites = []
