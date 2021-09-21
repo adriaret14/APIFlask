@@ -39,76 +39,54 @@ def ClearCompanyFavouritesLists():
 
 class CompanyFavourites(Resource):
     def get(self):
-        if not request.is_json:
-            abort(400, msg='Request body cannot be empty and must be JSON formatted')
-
+        CheckIfRequestIsNotJson(request.is_json)
         json_org_id = request.json.get("org_id")
-
-        if json_org_id is None:
-            abort(400, msg='Missing required field org_id')
-
+        CheckIfFieldIsMissing(json_org_id, "org_id")
         result = GetCompanyFavourites(json_org_id)
+        CheckIfObjectsDoesntExist(result)
 
-        if result:
-            idList = []
-            for cF in companyFavourites:
-                idList.append(cF.favourite_org_id)
-
-            companies = companyResource.GetCompaniesById(idList)
-            for cF in companyFavourites:
-                for c in companies:
-                    if cF.favourite_org_id == c.org_id:
-                        cFExport = companyFavouritesModel.CompanyFavouriteExport(org_id=c.org_id,
+        idList = []
+        for cF in companyFavourites:
+            idList.append(cF.favourite_org_id)
+        companies = companyResource.GetCompaniesById(idList)
+        for cF in companyFavourites:
+            for c in companies:
+                if cF.favourite_org_id == c.org_id:
+                    cFExport = companyFavouritesModel.CompanyFavouriteExport(org_id=c.org_id,
                                                                                  org_name=c.org_name,
                                                                                  addition_date=cF.addition_date)
-                        companyFavouritesExport.append(cFExport)
+                    companyFavouritesExport.append(cFExport)
 
-            return cFavouriteExportSchema.dump(companyFavouritesExport, many=True)
-        else:
-            abort(404, msg='Company not found')
+        return cFavouriteExportSchema.dump(companyFavouritesExport, many=True)
 
     def post(self):
-        if not request.is_json:
-            abort(400, msg='Request body cannot be empty and must be JSON formatted')
-
+        CheckIfRequestIsNotJson(request.is_json)
         json_org_id = request.json.get("org_id")
         json_favourite_org_id = request.json.get("favourite_org_id")
-
-        if json_org_id is None:
-            abort(400, msg='Missing required field org_id')
-
-        if json_favourite_org_id is None:
-            abort(400, msg='Missing required field favourite_org_id')
-
+        CheckIfFieldIsMissing(json_org_id, "org_id")
+        CheckIfFieldIsMissing(json_favourite_org_id, "favourite_org_id")
         cFavouriteModel = companyFavouritesModel.CompanyFavourites(org_id=json_org_id,
                                                                    favourite_org_id=json_favourite_org_id)
+        CheckIfObjectAlreadyExists(FindSpecificFavouriteCompany(json_org_id, json_favourite_org_id))
+        companyFavouritesModel.companiesFavourites.append(cFavouriteModel)
 
-        if (FindSpecificFavouriteCompany(json_org_id, json_favourite_org_id)) is None:
-            companyFavouritesModel.companiesFavourites.append(cFavouriteModel)
-        else:
-            abort(400, msg='The favourited company already exists')
+        # if (FindSpecificFavouriteCompany(json_org_id, json_favourite_org_id)) is None:
+        #     companyFavouritesModel.companiesFavourites.append(cFavouriteModel)
+        # else:
+        #     abort(400, msg='The favourited company already exists')
 
         return {'msg': 'Company Favourite Added'}, 201
 
     def put(self):
         return {'msg': 'Request not found'}, 404
     def delete(self):
-        if not request.is_json:
-            abort(400, msg='Request body cannot be empty and must be JSON formatted')
-
+        CheckIfRequestIsNotJson(request.is_json)
         json_org_id = request.json.get("org_id")
         json_favourite_org_id = request.json.get("favourite_org_id")
-
-        if json_org_id is None:
-            abort(400, msg='Missing required field org_id')
-
-        if json_favourite_org_id is None:
-            abort(400, msg='Missing required field favourite_org_id')
-
+        CheckIfFieldIsMissing(json_org_id, "org_id")
+        CheckIfFieldIsMissing(json_favourite_org_id, "favourite_org_id")
         result = FindSpecificFavouriteCompany(json_org_id, json_favourite_org_id)
-        if result is not None:
-            companyFavouritesModel.companiesFavourites.remove(result)
-        else:
-            abort(404, msg='Company not found')
+        CheckIfObjectIsNone(result)
+        companyFavouritesModel.companiesFavourites.remove(result)
 
         return {'msg': 'OK'}, 200

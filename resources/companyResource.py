@@ -12,12 +12,6 @@ cSchema = companySchema.CompanySchema()
 #Only use if using API with variables
 companyIdCont = 0
 
-def CheckCompanyDoesntExist(name):
-    for c in companyModel.companies:
-        if c.org_name == name:
-            return True
-
-    return False
 
 def GetCompaniesById(idList):
     companiesData = []
@@ -38,81 +32,59 @@ def GetCompanyById(id):
             break
     return foundCompany
 
+def GetCompanyByName(name):
+    foundCompany = None
+    for c in companyModel.companies:
+        if c.org_name == name:
+            foundCompany=c
+            break
+    return foundCompany
+
 
 class Company(Resource):
     def get(self):
-        if not request.is_json:
-            abort(400, msg='Request body cannot be empty and must be JSON formatted')
-
+        CheckIfRequestIsNotJson(request.is_json)
         json_org_id = request.json.get("org_id")
-
-        if json_org_id is None:
-            abort(400, msg='Missing required field org_id')
-
+        CheckIfFieldIsMissing(json_org_id, "org_id")
         result = GetCompanyById(json_org_id)
+        CheckIfObjectIsNone(result)
 
-        if result is not None:
-            return cSchema.dump(GetCompanyById(json_org_id)), 200
-        else:
-            abort(404, msg='Company not found')
+        return cSchema.dump(result), 200
 
     def post(self):
         global companyIdCont
 
-        if not request.is_json:
-            abort(400, msg='Request body cannot be empty and must be JSON formatted')
-
+        CheckIfRequestIsNotJson(request.is_json)
         json_org_name = request.json.get("org_name")
-
-        if json_org_name is None:
-            abort(400, msg='Missing required field org_name')
-
-        if CheckCompanyDoesntExist(json_org_name) == False:
-            cModel = companyModel.Company(org_id=companyIdCont,
+        CheckIfFieldIsMissing(json_org_name, "org_name")
+        CheckIfObjectAlreadyExists(GetCompanyByName(json_org_name))
+        cModel = companyModel.Company(org_id=companyIdCont,
                                          org_name=json_org_name)
-        else:
-            abort(400, msg='The company already exists')
-
         companyIdCont += 1
         companyModel.companies.append(cModel)
+
         return {'msg': 'Company created'}, 201
 
     def put(self):
-        if not request.is_json:
-            abort(400, msg='Request body cannot be empty and must be JSON formatted')
-
+        CheckIfRequestIsNotJson(request.is_json)
         json_org_id = request.json.get("org_id")
         json_org_name = request.json.get("org_name")
-
-        if json_org_id is None:
-            abort(400, msg='Missing required field org_id')
-
-        if json_org_name is None:
-            abort(400, msg='Missing required field org_name')
-
+        CheckIfFieldIsMissing(json_org_id, "org_id")
+        CheckIfFieldIsMissing(json_org_name, "org_name")
         updCompany = GetCompanyById(json_org_id)
-        if updCompany != None:
-            updCompany.org_name = json_org_name
-        else:
-            abort(404, msg='Company not found')
+        CheckIfObjectIsNone(updCompany)
+        updCompany.org_name = json_org_name
 
         return {'msg': 'OK'}, 200
 
     def delete(self):
-        if not request.is_json:
-            abort(400, msg='Request body cannot be empty and must be JSON formatted')
-
+        CheckIfRequestIsNotJson(request.is_json)
         json_org_id = request.json.get("org_id")
-
-        if json_org_id is None:
-            abort(400, msg='Missing required field org_id')
-
+        CheckIfFieldIsMissing(json_org_id, "org_id")
         delCompany = GetCompanyById(json_org_id)
-        if delCompany != None:
-            companyModel.companies.remove(delCompany)
-            companyFavouritesResource.DeleteCascadeAllCompanyRegisters(json_org_id)
-        else:
-            abort(404, msg='Company not found')
+        CheckIfObjectIsNone(delCompany)
+        companyModel.companies.remove(delCompany)
+        companyFavouritesResource.DeleteCascadeAllCompanyRegisters(json_org_id)
 
         return {'msg': 'OK'}, 200
 
