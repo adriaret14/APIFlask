@@ -58,10 +58,13 @@ class Company(Resource):
         json_org_name = request.json.get("org_name")
         CheckIfFieldIsMissing(json_org_name, "org_name")
         CheckIfObjectAlreadyExists(GetCompanyByName(json_org_name))
-        cModel = companyModel.Company(org_id=companyIdCont,
-                                         org_name=json_org_name)
-        companyIdCont += 1
+        # cModel = companyModel.CompanyMod(org_id=companyIdCont,
+        #                                  org_name=json_org_name)
+        cModel = companyModel.Company(org_name=json_org_name)
+        #companyIdCont += 1
         companyModel.companies.append(cModel)
+        cModel.save()
+        #companySchema.dump(cModel)
 
         return {'msg': 'Company created'}, 201
 

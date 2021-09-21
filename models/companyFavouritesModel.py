@@ -1,17 +1,19 @@
 from datetime import date
+from dB import db, BaseModelMixin
 
-from db import db
-
-# class CompanyFavourites(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     org_id = db.Column(db.Integer)
-#     favourite_org_id = db.Column(db.Integer)
+class CompanyFavourites(db.Model, BaseModelMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    org_id = db.Column(db.Integer, db.ForeignKey('company.org_id'))
+    addition_date = db.Column(db.Date)
+    favourite_org_id = db.Column(db.Integer, db.ForeignKey('company.org_id'))
+    org = db.relationship('Company', foreign_keys=[org_id])
+    favourite_org = db.relationship('Company', foreign_keys=[favourite_org_id])
 
 
 companiesFavourites = []
 
 
-class CompanyFavourites:
+class CompanyFavouritesMod:
     org_id: int
     addition_date: date
     favourite_org_id: int

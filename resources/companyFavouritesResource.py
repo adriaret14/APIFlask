@@ -65,8 +65,8 @@ class CompanyFavourites(Resource):
         json_favourite_org_id = request.json.get("favourite_org_id")
         CheckIfFieldIsMissing(json_org_id, "org_id")
         CheckIfFieldIsMissing(json_favourite_org_id, "favourite_org_id")
-        cFavouriteModel = companyFavouritesModel.CompanyFavourites(org_id=json_org_id,
-                                                                   favourite_org_id=json_favourite_org_id)
+        cFavouriteModel = companyFavouritesModel.CompanyFavouritesMod(org_id=json_org_id,
+                                                                      favourite_org_id=json_favourite_org_id)
         CheckIfObjectAlreadyExists(FindSpecificFavouriteCompany(json_org_id, json_favourite_org_id))
         companyFavouritesModel.companiesFavourites.append(cFavouriteModel)
 
